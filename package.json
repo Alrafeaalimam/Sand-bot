@@ -1,0 +1,20 @@
+{
+  "name": "sanad-bot",
+  "version": "1.0.0",
+  "description": "بوت واتساب توعوي من مخاطر المخدرات في السودان - سند",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "web": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "@hapi/boom": "^10.0.1",
+    "pino": "^9.4.0",
+    "dotenv": "^16.4.5",
+    "qrcode-terminal": "^0.12.0",
+    "groq-sdk": "^0.7.0",
+    "express": "^4.19.2",
+    "uuid": "^9.0.1"
+  }
+}
