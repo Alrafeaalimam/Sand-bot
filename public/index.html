@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>سند — بوت التوعية من مخاطر المخدرات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b1210;
+    --panel: #101a17;
+    --panel-2: #14201c;
+    --line: #1f302a;
+    --beacon: #d99a3d;
+    --beacon-dim: #8a6a34;
+    --signal: #4fae8f;
+    --text: #e6ede9;
+    --text-dim: #8fa39c;
+    --danger: #c96b5a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(217,154,61,0.06), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(79,174,143,0.05), transparent 40%);
+  }
+
+  .shell {
+    max-width: 760px;
+    margin: 0 auto;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    border-inline: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  /* ===== الهيدر: شريط إشارة/منارة ===== */
+  .header {
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 38px,
+      rgba(217,154,61,0.035) 38px,
+      rgba(217,154,61,0.035) 39px
+    );
+    pointer-events: none;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+  }
+
+  .beacon-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--beacon);
+    box-shadow: 0 0 0 0 rgba(217,154,61,0.6);
+    animation: pulse 2.4s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(217,154,61,0.55); }
+    70% { box-shadow: 0 0 0 9px rgba(217,154,61,0); }
+    100% { box-shadow: 0 0 0 0 rgba(217,154,61,0); }
+  }
+
+  .brand-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .brand-sub {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .status-line {
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--signal);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-line .mode-tag {
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--text-dim);
+  }
+
+  /* ===== منطقة الرسائل ===== */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 12px 15px;
+    border-radius: 10px;
+    line-height: 1.75;
+    font-size: 14.5px;
+    white-space: pre-wrap;
+    animation: rise 0.25s ease;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-inline-start: 3px solid var(--signal);
+  }
+
+  .msg.user {
+    align-self: flex-end;
+    background: rgba(217,154,61,0.1);
+    border: 1px solid rgba(217,154,61,0.25);
+    border-inline-end: 3px solid var(--beacon);
+  }
+
+  .msg.system {
+    align-self: center;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    border: 1px dashed var(--line);
+  }
+
+  .quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 20px 14px;
+  }
+
+  .qr-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 7px 13px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .qr-btn:hover {
+    border-color: var(--beacon);
+    color: var(--beacon);
+  }
+
+  .typing {
+    align-self: flex-start;
+    display: flex;
+    gap: 5px;
+    padding: 12px 15px;
+  }
+
+  .typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.25; }
+    40% { opacity: 1; }
+  }
+
+  /* ===== شريط الإدخال ===== */
+  .composer {
+    border-top: 1px solid var(--line);
+    background: var(--panel-2);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .composer input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 14.5px;
+    outline: none;
+  }
+
+  .composer input:focus {
+    border-color: var(--signal);
+  }
+
+  .composer button {
+    background: var(--beacon);
+    color: #14100a;
+    border: none;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: opacity 0.15s;
+  }
+
+  .composer button:hover { opacity: 0.85; }
+  .composer button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 10.5px;
+    color: var(--text-dim);
+    padding: 8px 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="header">
+    <div class="brand-row">
+      <div class="beacon-dot"></div>
+      <div>
+        <div class="brand-name">سَنَد</div>
+        <div class="brand-sub">منارة توعية من مخاطر المخدرات — السودان</div>
+      </div>
+    </div>
+    <div class="status-line">
+      <span>◈ متصل</span>
+      <span class="mode-tag" id="modeTag">القائمة الرئيسية</span>
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+  <div class="quick-replies" id="quickReplies"></div>
+
+  <div class="composer">
+    <input id="input" type="text" placeholder="اكتب رسالتك هنا…" autocomplete="off" />
+    <button id="sendBtn">إرسال</button>
+  </div>
+  <div class="footer-note">سرية تامة · بلا حكم · اكتب "مساعدة" لجهات العلاج في أي وقت</div>
+</div>
+
+<script>
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const quickRepliesEl = document.getElementById('quickReplies');
+const modeTag = document.getElementById('modeTag');
+
+let sessionId = localStorage.getItem('sanad_session');
+
+async function initSession() {
+  if (!sessionId) {
+    const res = await fetch('/api/session');
+    const data = await res.json();
+    sessionId = data.sessionId;
+    localStorage.setItem('sanad_session', sessionId);
+  }
+  sendToBot('قايمة', true);
+}
+
+function addMessage(text, sender) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + sender;
+  el.textContent = text;
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function showTyping() {
+  const el = document.createElement('div');
+  el.className = 'typing';
+  el.id = 'typingIndicator';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function updateModeTag(userText) {
+  if (['1'].includes(userText)) modeTag.textContent = 'الخبير المجهول';
+  else if (['2'].includes(userText)) modeTag.textContent = 'لعبة القرار';
+  else if (['قايمة','menu','0'].includes(userText.toLowerCase())) modeTag.textContent = 'القائمة الرئيسية';
+}
+
+function renderQuickReplies(botText) {
+  quickRepliesEl.innerHTML = '';
+  const lines = botText.split('\\n');
+  const optionLines = lines.filter(l => /^[0-90-9️⃣]/u.test(l.trim()) || /^[١-٩0-9]️⃣/.test(l.trim()));
+  optionLines.forEach(line => {
+    const match = line.trim().match(/^(\\d)/) || line.trim().match(/^([0-9])️⃣/);
+    const num = line.trim()[0];
+    const btn = document.createElement('button');
+    btn.className = 'qr-btn';
+    btn.textContent = line.trim();
+    btn.onclick = () => sendToBot(num.match(/[0-9]/) ? num : line.trim()[0]);
+    quickRepliesEl.appendChild(btn);
+  });
+  // زر رجوع للقائمة دايماً متاح لو مو في القائمة الرئيسية أصلاً
+  if (!/القائمة الرئيسية/.test(modeTag.textContent) || quickRepliesEl.children.length === 0) {
+    const backBtn = document.createElement('button');
+    backBtn.className = 'qr-btn';
+    backBtn.textContent = '↩ قايمة';
+    backBtn.onclick = () => sendToBot('قايمة');
+    quickRepliesEl.appendChild(backBtn);
+  }
+}
+
+async function sendToBot(text, silent) {
+  if (!silent) {
+    addMessage(text, 'user');
+    updateModeTag(text);
+  }
+  inputEl.value = '';
+  sendBtn.disabled = true;
+  showTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, message: text })
+    });
+    const data = await res.json();
+    hideTyping();
+    if (data.reply) {
+      addMessage(data.reply, 'bot');
+      renderQuickReplies(data.reply);
+    } else {
+      addMessage('صار خطأ، حاول تاني.', 'system');
+    }
+  } catch (e) {
+    hideTyping();
+    addMessage('تعذر الاتصال بالسيرفر.', 'system');
+  }
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+sendBtn.addEventListener('click', () => {
+  const val = inputEl.value.trim();
+  if (val) sendToBot(val);
+});
+
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = inputEl.value.trim();
+    if (val) sendToBot(val);
+  }
+});
+
+initSession();
+</script>
+</body>
+</html>
