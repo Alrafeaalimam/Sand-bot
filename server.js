@@ -27,7 +27,7 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-const PORT = process.env.WEB_PORT || 3000;
+const PORT = process.env.PORT || process.env.WEB_PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🌐 واجهة سند بوت شغالة على http://localhost:${PORT}`);
 });
