@@ -175,25 +175,65 @@
   .quick-replies {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 0 20px 14px;
+    gap: 10px;
+    padding: 8px 20px 14px;
+    background: linear-gradient(180deg, transparent, rgba(16, 26, 23, 0.6));
+    max-height: 200px;
+    overflow-y: auto;
   }
 
   .qr-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
     background: var(--panel-2);
     border: 1px solid var(--line);
     color: var(--text);
-    padding: 7px 13px;
-    border-radius: 20px;
+    padding: 8px 15px;
+    border-radius: 22px;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
   }
 
   .qr-btn:hover {
+    border-color: var(--signal);
+    color: #ffffff;
+    background: rgba(79, 174, 143, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 174, 143, 0.2);
+  }
+
+  .qr-btn:active {
+    transform: scale(0.96);
+  }
+
+  .qr-btn.accent {
+    border-color: rgba(217, 154, 61, 0.45);
+    background: rgba(217, 154, 61, 0.1);
+    color: #f7e6cc;
+  }
+
+  .qr-btn.accent:hover {
     border-color: var(--beacon);
-    color: var(--beacon);
+    color: #ffffff;
+    background: rgba(217, 154, 61, 0.25);
+    box-shadow: 0 4px 14px rgba(217, 154, 61, 0.3);
+  }
+
+  .qr-btn.nav {
+    border-color: rgba(201, 107, 90, 0.3);
+    color: var(--text-dim);
+  }
+
+  .qr-btn.nav:hover {
+    border-color: var(--danger);
+    color: #ffb4a6;
+    background: rgba(201, 107, 90, 0.15);
   }
 
   .typing {
@@ -316,10 +356,24 @@ async function initSession() {
   sendToBot('قايمة', true);
 }
 
+function formatMarkdown(text) {
+  if (!text) return '';
+  let safe = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  safe = safe.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
+  return safe;
+}
+
 function addMessage(text, sender) {
   const el = document.createElement('div');
   el.className = 'msg ' + sender;
-  el.textContent = text;
+  if (sender === 'bot') {
+    el.innerHTML = formatMarkdown(text);
+  } else {
+    el.textContent = text;
+  }
   messagesEl.appendChild(el);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -339,32 +393,74 @@ function hideTyping() {
 }
 
 function updateModeTag(userText) {
-  if (['1'].includes(userText)) modeTag.textContent = 'الخبير المجهول';
-  else if (['2'].includes(userText)) modeTag.textContent = 'لعبة القرار';
-  else if (['قايمة','menu','0'].includes(userText.toLowerCase())) modeTag.textContent = 'القائمة الرئيسية';
+  const norm = (userText || '').trim();
+  if (['1'].includes(norm) || norm.includes('خبير')) modeTag.textContent = 'الخبير المجهول';
+  else if (['2'].includes(norm) || norm.includes('لعبة')) modeTag.textContent = 'لعبة القرار';
+  else if (['3'].includes(norm) || norm.includes('مساعدة') || norm.includes('علاج')) modeTag.textContent = 'جهات المساعدة';
+  else if (['قايمة','menu','0','الرئيسية','قائمة'].some(k => norm.toLowerCase().includes(k))) modeTag.textContent = 'القائمة الرئيسية';
 }
 
 function renderQuickReplies(botText) {
   quickRepliesEl.innerHTML = '';
-  const lines = botText.split('\\n');
-  const optionLines = lines.filter(l => /^[0-90-9️⃣]/u.test(l.trim()) || /^[١-٩0-9]️⃣/.test(l.trim()));
-  optionLines.forEach(line => {
-    const match = line.trim().match(/^(\\d)/) || line.trim().match(/^([0-9])️⃣/);
-    const num = line.trim()[0];
+  if (!botText) return;
+
+  const lines = botText.split('\n');
+  const buttons = [];
+
+  const isWelcome = botText.includes('أهلاً بيك في *سند*') || botText.includes('اختار شنو داير تعمل');
+  const isGameMenu = botText.includes('لعبة القرار — اختار موقف');
+  const isExpertIntro = botText.includes('وضع الخبير المجهول');
+  const isHelpContacts = botText.includes('جهات مساعدة وعلاج');
+
+  if (isWelcome) {
+    buttons.push({ text: '1️⃣ 🕵️ اسأل الخبير المجهول', value: '1', accent: true });
+    buttons.push({ text: '2️⃣ 🎮 لعبة القرار (سيناريوهات)', value: '2', accent: true });
+    buttons.push({ text: '3️⃣ 📞 جهات مساعدة وعلاج', value: '3', accent: false });
+    buttons.push({ text: '0️⃣ 🏠 الرئيسية', value: '0', nav: true });
+  } else if (isGameMenu) {
+    lines.forEach(l => {
+      const trimmed = l.trim();
+      const match = trimmed.match(/^([1-9])(?:\uFE0F?\u20E3|\.|\))\s*(.+)$/);
+      if (match) {
+        buttons.push({ text: trimmed, value: match[1], accent: true });
+      }
+    });
+    buttons.push({ text: '↩ القائمة الرئيسية', value: 'قايمة', nav: true });
+  } else if (isExpertIntro) {
+    buttons.push({ text: '❓ شنو هو مخدر الآيس؟', value: 'شنو هو مخدر الآيس؟', accent: true });
+    buttons.push({ text: '🔍 علامات التعاطي شنو؟', value: 'كيف أعرف علامات تعاطي الآيس؟', accent: true });
+    buttons.push({ text: '🤝 كيف أساعد زول مدمن؟', value: 'كيف أساعد شخص مدمن بدون ما أحرجه؟', accent: true });
+    buttons.push({ text: '⚖️ القانون السوداني والمخدرات', value: 'شنو عقوبة المخدرات في القانون السوداني؟', accent: false });
+    buttons.push({ text: '↩ رجوع للقائمة', value: 'قايمة', nav: true });
+  } else if (isHelpContacts) {
+    buttons.push({ text: '1️⃣ اسأل الخبير المجهول', value: '1', accent: true });
+    buttons.push({ text: '2️⃣ لعبة القرار', value: '2', accent: true });
+    buttons.push({ text: '↩ القائمة الرئيسية', value: 'قايمة', nav: true });
+  } else {
+    lines.forEach(l => {
+      const trimmed = l.trim();
+      const match = trimmed.match(/^([1-9])(?:\uFE0F?\u20E3|\.|\))\s*(.+)$/);
+      if (match) {
+        buttons.push({ text: trimmed, value: match[1], accent: true });
+      }
+    });
+
+    if (botText.includes('الرجوع للقائمة') || botText.includes('قرار ممتاز') || botText.includes('التجاهل') || botText.includes('ابتعدت عنه')) {
+      buttons.push({ text: '🎮 سيناريو جديد', value: '2', accent: true });
+    }
+
+    buttons.push({ text: '↩ قايمة', value: 'قايمة', nav: true });
+  }
+
+  buttons.forEach(b => {
     const btn = document.createElement('button');
-    btn.className = 'qr-btn';
-    btn.textContent = line.trim();
-    btn.onclick = () => sendToBot(num.match(/[0-9]/) ? num : line.trim()[0]);
+    btn.className = 'qr-btn' + (b.accent ? ' accent' : '') + (b.nav ? ' nav' : '');
+    btn.textContent = b.text;
+    btn.onclick = () => sendToBot(b.value);
     quickRepliesEl.appendChild(btn);
   });
-  // زر رجوع للقائمة دايماً متاح لو مو في القائمة الرئيسية أصلاً
-  if (!/القائمة الرئيسية/.test(modeTag.textContent) || quickRepliesEl.children.length === 0) {
-    const backBtn = document.createElement('button');
-    backBtn.className = 'qr-btn';
-    backBtn.textContent = '↩ قايمة';
-    backBtn.onclick = () => sendToBot('قايمة');
-    quickRepliesEl.appendChild(backBtn);
-  }
+
+  quickRepliesEl.scrollTop = 0;
 }
 
 async function sendToBot(text, silent) {
