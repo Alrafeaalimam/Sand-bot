@@ -3,8 +3,7 @@ const knowledge = require("../data/knowledge.json");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// استخدم موديل نشط دايماً (تأكد من groq.com/docs/models قبل النشر)
-const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const MODEL = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
 
 const knowledgeText = knowledge
   .map((k) => `- [${k.category}] س: ${k.question}\n  ج: ${k.answer}`)
